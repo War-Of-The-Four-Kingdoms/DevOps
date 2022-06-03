@@ -1,20 +1,19 @@
+# Set the name of the workflow
 name: PHP Socket.js CICD
 
-# Controls when the workflow will run
 on:
-  # Triggers the workflow on push or pull request events but only for the main branch
+  # Triggers the workflow on push events but only for the docker branch
   push:
     branches: [ docker ]
 
-# A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
-  # This workflow contains a single job called "build"
+  # This workflow will run 2 jobs called "build" and "deploy"
   build:
     # The type of runner that the job will run on
     runs-on: ubuntu-latest
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
-      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      # Checks-out your repository, so your job can access it
       - name: Checkout the code 
         uses: actions/checkout@v3
       
@@ -45,10 +44,13 @@ jobs:
         run: |
           echo "----- DOCKER LOGOUT -----"
           docker logout
-
+          
+  # Job "deploy" for this workflow
   deploy:
     needs: build
+    # The type of runner that the job will run on
     runs-on: ubuntu-latest
+    # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
