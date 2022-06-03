@@ -1,14 +1,21 @@
+# Set the name of the workflow
 name: Angular CICD
+
+# Set trigger of this workflow to "works everytime someone push on docker branch"
 on:
   push:
     branches: [ docker ]
-    
+
+# Jobs that will run on this workflow (build, deploy)
 jobs:
   build:
+    # Set the runner machine to ubuntu using latest version.
     runs-on: ubuntu-latest
+    # Set strategy for building using node version 14.X can add another version for multi-build later
     strategy:
       matrix:
         node-version: [14.x]
+    # Steps that will run on "build" job
     steps:
     - name: Checkout Code
       uses: actions/checkout@v3
@@ -41,10 +48,14 @@ jobs:
         echo "----- DOCKER LOGOUT -----"
         docker logout
         
+  # Deploy Job
   deploy:
+    # Set required step "build" job must passed and finished first
     needs: build
+    # Set the runner machine to ubuntu using latest version.
     runs-on: ubuntu-latest
     
+    # Step that will run on "deploy" job
     steps:
     - name: Checkout Code
       uses: actions/checkout@v3
