@@ -1,0 +1,8 @@
+resource_group_name         = "my_terraform_rg"
+resource_group_location     = "Australia East"
+virtual_network_name        = "vnet_project"
+subnet_name                 = "subnet_project"
+public_ip_name              = "publicip_project"
+network_security_group_name = "nsg_project"
+network_interface_name      = "nic_project"
+linux_virtual_machine_name  = "linux_vm_project"
