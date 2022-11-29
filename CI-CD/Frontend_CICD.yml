@@ -1,21 +1,14 @@
-# Set the name of the workflow
 name: Angular CICD
-
-# Set trigger of this workflow to "works everytime someone push on docker branch"
 on:
   push:
-    branches: [ docker ]
-
-# Jobs that will run on this workflow (build, deploy)
+    branches: [ main ]
+    
 jobs:
   build:
-    # Set the runner machine to ubuntu using latest version.
     runs-on: ubuntu-latest
-    # Set strategy for building using node version 14.X can add another version for multi-build later
     strategy:
       matrix:
         node-version: [14.x]
-    # Steps that will run on "build" job
     steps:
     - name: Checkout Code
       uses: actions/checkout@v3
@@ -48,14 +41,10 @@ jobs:
         echo "----- DOCKER LOGOUT -----"
         docker logout
         
-  # Deploy Job
   deploy:
-    # Set required step "build" job must passed and finished first
     needs: build
-    # Set the runner machine to ubuntu using latest version.
     runs-on: ubuntu-latest
     
-    # Step that will run on "deploy" job
     steps:
     - name: Checkout Code
       uses: actions/checkout@v3
@@ -80,9 +69,16 @@ jobs:
           docker image prune -f
           docker pull docker.io/sharkthovenzart/seniorproject:frontend
           echo ""
-          echo "----- DOCKER RUN -----"
-          docker rm frontend --force
-          docker run --name frontend -p 80:80 -d sharkthovenzart/seniorproject:frontend
+          echo "----- DOCKER COMPOSE RUN -----"
+          docker-compose down
+          docker-compose up -d
+          sleep 35
+          docker exec -i backend pm2 start server.js
+          docker exec -i backend pm2 start "php artisan serve --host=0.0.0.0" 
+          echo ""
+          echo "----- DOCKER EXEC RUN PHP -----"
+          docker exec -i backend php artisan migrate:fresh --seed --force
+          docker exec -i backend php artisan passport:install --uuids --force -n
           echo ""
           echo "----- DOCKER LOGOUT -----"
           docker logout
