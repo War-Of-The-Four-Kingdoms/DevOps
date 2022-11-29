@@ -1,19 +1,20 @@
-# Set the name of the workflow
 name: PHP Socket.js CICD
 
+# Controls when the workflow will run
 on:
-  # Triggers the workflow on push events but only for the docker branch
+  # Triggers the workflow on push or pull request events but only for the main branch
   push:
-    branches: [ docker ]
+    branches: [ main ]
 
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
-  # This workflow will run 2 jobs called "build" and "deploy"
+  # This workflow contains a single job called "build"
   build:
     # The type of runner that the job will run on
     runs-on: ubuntu-latest
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
-      # Checks-out your repository, so your job can access it
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - name: Checkout the code 
         uses: actions/checkout@v3
       
@@ -44,13 +45,10 @@ jobs:
         run: |
           echo "----- DOCKER LOGOUT -----"
           docker logout
-          
-  # Job "deploy" for this workflow
+
   deploy:
     needs: build
-    # The type of runner that the job will run on
     runs-on: ubuntu-latest
-    # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -75,15 +73,16 @@ jobs:
             docker image prune -f
             docker pull docker.io/sharkthovenzart/seniorproject:backend
             echo ""
-            echo "----- DOCKER RUN -----"
-            docker rm backend --force
-            docker run --name backend -p 8000:8000 -p 3000:3000 -p 3030:3030 -d sharkthovenzart/seniorproject:backend
+            echo "----- DOCKER COMPOSE RUN -----"
+            docker-compose down
+            docker-compose up -d
             echo ""
-            echo "----- DOCKER RUN -----"
+            echo "----- DOCKER EXEC RUN -----"
             docker exec -i backend pm2 start server.js
             docker exec -i backend pm2 start "php artisan serve --host=0.0.0.0"
-            docker exec -i backend pm2 ls
-            exit
+            echo "----- DOCKER EXEC RUN PHP -----"
+            docker exec -i backend php artisan migrate:fresh --seed --force
+            docker exec -i backend php artisan passport:install --uuids --force -n
             echo ""
             echo "----- DOCKER LOGOUT -----"
             docker logout
@@ -94,4 +93,5 @@ jobs:
         run: |
           echo "----- DOCKER LIST CONTAINER -----"
           docker ps -a
-          echo ""      
+          echo ""  
+          
